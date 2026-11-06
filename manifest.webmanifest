@@ -1,0 +1,16 @@
+{
+  "name": "New York 2026 · putni pratilac",
+  "short_name": "New York",
+  "description": "Plan po danima, troškovi sa slikama računa i popisi za New York, 5. – 14. 12. 2026.",
+  "lang": "hr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3EDE2",
+  "theme_color": "#0E1A2B",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
