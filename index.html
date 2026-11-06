@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>New York 2026 · putni pratilac</title>
 <meta name="theme-color" content="#0E1A2B">
+<meta name="color-scheme" content="only light">
 <meta name="description" content="Putni pratilac za New York, 5. – 14. 12. 2026: plan po danima, troškovi i popisi.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -17,6 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
+  color-scheme:only light;
   --navy:#0E1A2B; --navy2:#1B2A40; --gold:#C9A15B; --gold-d:#7A5C24; --slate:#4A5566;
   --cream:#F3F4F6; --paper:#FFFFFF; --line:#E5E7EB; --line2:#D1D5DB; --ok:#4E7A55; --bad:#A4473A;
   --serif:'Bodoni Moda',Georgia,serif; --sans:'Jost',system-ui,-apple-system,sans-serif;
@@ -116,6 +118,18 @@ nav.tabs button.on{color:var(--gold)}
 /* sheet */
 .overlay{position:fixed;inset:0;background:rgba(14,26,43,.55);z-index:40;display:none;align-items:flex-end;justify-content:center}
 .overlay.open{display:flex}
+.sheet.install{background:linear-gradient(170deg,#13233A 0%,var(--navy) 60%);color:var(--cream);border-top:3px solid var(--gold)}
+.sheet.install .handle{background:rgba(201,161,91,.5)}
+.sheet.install h2{color:#fff;font-size:28px}
+.sheet.install .muted{color:#B8C0CC}
+.sheet.install b{color:#fff}
+.sheet.install .tip{background:rgba(201,161,91,.12);color:#E9E2D3}
+.inst-hero{display:flex;align-items:center;gap:14px;margin:4px 0 6px}
+.inst-hero img{width:64px;height:64px;border-radius:16px;box-shadow:0 0 0 1px rgba(201,161,91,.5),0 6px 18px rgba(0,0,0,.35)}
+.inst-steps{background:#fff;color:var(--navy);border-radius:14px;padding:4px 14px 14px;margin-top:14px}
+.inst-steps b{color:var(--navy)!important}
+.inst-steps .muted{color:var(--slate)!important}
+.btn.ghost-light{border-color:rgba(255,255,255,.25);color:#C9CFD8;background:transparent}
 .sheet{background:var(--paper);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
 .sheet .handle{width:40px;height:4px;background:var(--line2);border-radius:4px;margin:-6px auto 12px}
 label.f{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin:14px 0 6px}
@@ -733,6 +747,7 @@ function openExpense(id, day){
   if (!id) setTimeout(() => $("#fAmt")?.focus(), 250);
 }
 function drawSheet(){
+  $("#sheet").classList.remove("install");
   const dayOpts = [["pre","Prije puta"], ...DAYS.map(d => [d.id, `${d.dow}, ${d.d}`])];
   const n = parseNum(F.amtStr);
   const conv = isFinite(n) && F.cur === "USD" ? `≈ ${eur(n * (S.settings.rate||0.87))}` : "";
@@ -857,23 +872,25 @@ function showInstall(state){
     body = `<h2 style="margin:6px 0 8px">Instalirano!</h2><p class="muted">Zatvori preglednik i otvori <b>New York</b> s početnog zaslona. Tamo upiši svoje ime i kreni.</p>`;
   } else if (inAppBrowser){
     body = `<h2 style="margin:6px 0 8px">Otvori u pregledniku</h2><p class="muted">Link je otvoren unutar druge aplikacije, pa se odavde ne može instalirati.</p>
-      ${step(1, `Dodirni izbornik <b>⋮</b> ili <b>…</b> u kutu`)}${step(2, `Odaberi <b>Otvori u pregledniku</b> (${isIOS ? "Safari" : "Chrome"})`)}${step(3, "Tamo će se ponuditi instalacija")}`;
+      <div class="inst-steps">${step(1, `Dodirni izbornik <b>⋮</b> ili <b>…</b> u kutu`)}${step(2, `Odaberi <b>Otvori u pregledniku</b> (${isIOS ? "Safari" : "Chrome"})`)}${step(3, "Tamo će se ponuditi instalacija")}</div>`;
   } else if (installEvt){
     body = `<h2 style="margin:6px 0 8px">Instaliraj aplikaciju</h2><p class="muted">Dodaj New York na početni zaslon – otvara se kao prava aplikacija, a plan i troškovi rade i bez interneta.</p>
       <button class="btn solid block" id="doInstall" style="margin-top:14px;padding:14px;font-size:16px">⤓ Instaliraj</button>`;
   } else if (isIOS){
     body = `<h2 style="margin:6px 0 8px">Dodaj na početni zaslon</h2><p class="muted">Tako se New York otvara kao prava aplikacija i radi bez interneta.</p>
-      ${step(1, `Dodirni ikonu <b>Dijeli</b> ${SHARE_IC} na dnu ili vrhu Safarija`)}${step(2, `Pomakni se dolje i odaberi <b>Dodaj na početni zaslon</b>`)}${step(3, `Dodirni <b>Dodaj</b>, pa otvori New York s početnog zaslona`)}
+      <div class="inst-steps">${step(1, `Dodirni ikonu <b>Dijeli</b> ${SHARE_IC} na dnu ili vrhu Safarija`)}${step(2, `Pomakni se dolje i odaberi <b>Dodaj na početni zaslon</b>`)}${step(3, `Dodirni <b>Dodaj</b>, pa otvori New York s početnog zaslona`)}</div>
       <div class="tip">Otvori aplikaciju s početnog zaslona prije unosa podataka – ono što upišeš ovdje u Safariju ostaje samo u Safariju.</div>`;
   } else if (isAndroid){
     body = `<h2 style="margin:6px 0 8px">Instaliraj aplikaciju</h2><p class="muted">Tako se New York otvara kao prava aplikacija i radi bez interneta.</p>
-      ${step(1, `Dodirni izbornik <b>⋮</b> gore desno u Chromeu`)}${step(2, `Odaberi <b>Instaliraj aplikaciju</b> ili <b>Dodaj na početni zaslon</b>`)}${step(3, `Potvrdi, pa otvori New York s početnog zaslona`)}
-      <p class="muted small" style="margin-top:12px">Ako koristiš Samsung Internet: izbornik ☰ → <b>Dodaj stranicu na</b> → <b>Početni zaslon</b>.</p>`;
+      <div class="inst-steps">${step(1, `Dodirni izbornik <b>⋮</b> gore desno`)}${step(2, `Odaberi <b>Instaliraj aplikaciju</b> ili <b>Dodaj na početni zaslon</b><br><span class="muted small">(engl. <i>Install app</i> ili <i>Add to Home screen</i>)</span>`)}${step(3, `Potvrdi, pa otvori New York s početnog zaslona`)}</div>
+      <p class="muted small" style="margin-top:12px">Ako je link otvoren iz WhatsAppa ili Gmaila, u izborniku odaberi <b>Otvori u pregledniku</b> (Chrome ili Samsung Internet), pa instalirati odande. U Samsung Internetu: izbornik ☰ → <b>Dodaj stranicu na</b> → <b>Početni zaslon</b>.</p>`;
   } else {
     body = `<h2 style="margin:6px 0 8px">Najbolje na mobitelu</h2><p class="muted">Aplikacija je napravljena za mobitel. Pošalji si link i otvori ga na mobitelu, tamo je možeš dodati na početni zaslon. Može se koristiti i ovdje u pregledniku.</p>`;
   }
-  $("#sheet").innerHTML = `<div class="handle"></div><div class="eyebrow gold">New York · 5. – 14. 12. 2026</div>${body}
-    <button class="btn block" id="skipInstall" style="margin-top:16px;border-color:var(--line2);color:var(--slate)">${state === "done" ? "Nastavi ovdje u pregledniku" : "Nastavi u pregledniku"}</button>`;
+  $("#sheet").classList.add("install");
+  $("#sheet").innerHTML = `<div class="handle"></div>
+    <div class="inst-hero"><img src="icons/icon-192.png" alt=""><div><div class="eyebrow">New York · 5. – 14. 12. 2026</div><div class="muted small" style="margin-top:2px">Putni pratilac</div></div></div>${body}
+    <button class="btn block ghost-light" id="skipInstall" style="margin-top:16px">${state === "done" ? "Nastavi ovdje u pregledniku" : "Nastavi u pregledniku"}</button>`;
   $("#sheetWrap").classList.add("open");
 }
 document.addEventListener("click", async e => {
@@ -891,6 +908,7 @@ document.addEventListener("click", async e => {
 });
 
 function askName(){
+  $("#sheet").classList.remove("install");
   $("#sheet").innerHTML = `<div class="handle"></div><div class="eyebrow gold">New York · 5. – 14. 12. 2026</div><h2 style="margin:6px 0 8px">Dobro došli!</h2>
     <p class="muted" style="margin:0 0 6px">Ovo je tvoj putni pratilac: plan po danima, troškovi sa slikama računa i popisi. Sve što uneseš ostaje samo na ovom uređaju.</p>
     <form id="welcomeForm"><label class="f">Kako se zoveš?</label><input class="inp" id="welcomeName" autocomplete="given-name" placeholder="Ime">
