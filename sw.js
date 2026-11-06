@@ -1,6 +1,6 @@
 // Omogućuje rad aplikacije bez interneta.
 // Kod svake promjene aplikacije povećaj broj verzije.
-const VERSION = "nyc26-v4";
+const VERSION = "nyc26-v5";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
