@@ -561,12 +561,12 @@ const WX = {data: LS.get("wx", null), loading:false};
 const WMO = c => c===0?["☀️","Vedro"]:c<=2?["⛅","Djelomično oblačno"]:c===3?["☁️","Oblačno"]:c<=48?["🌫️","Magla"]:c<=57?["🌦️","Rosulja"]:c<=67?["🌧️","Kiša"]:c<=77?["🌨️","Snijeg"]:c<=82?["🌦️","Pljuskovi"]:c<=86?["🌨️","Snježni pljuskovi"]:["⛈️","Grmljavina"];
 function wxNorm(j){
   const d = {}; j.daily.time.forEach((t,i) => d[t] = {c:j.daily.weather_code[i], hi:j.daily.temperature_2m_max[i], lo:j.daily.temperature_2m_min[i], p:j.daily.precipitation_probability_max[i], w:j.daily.wind_speed_10m_max[i]});
-  return {days:d, cur: j.current ? {t:j.current.temperature_2m, c:j.current.weather_code} : null};
+  return {days:d, cur: j.current ? {t:j.current.temperature_2m, f:j.current.apparent_temperature, h:j.current.relative_humidity_2m, w:j.current.wind_speed_10m, c:j.current.weather_code} : null};
 }
 async function loadWeather(force){
   if (WX.loading) return;
   if (!force && WX.data && Date.now() - WX.data.at < 3*36e5) return;
-  const q = (lat, lon, tz) => `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&current=temperature_2m,weather_code&timezone=${encodeURIComponent(tz)}&forecast_days=16`;
+  const q = (lat, lon, tz) => `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&timezone=${encodeURIComponent(tz)}&forecast_days=16`;
   WX.loading = true;
   try{
     const [ny, mi] = await Promise.all([fetch(q(40.7403,-74.0030,"America/New_York")), fetch(q(45.63,8.72,"Europe/Rome"))].map(p => p.then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })));
@@ -599,6 +599,14 @@ function wxCard(dayId){
   return `<div class="card"><div class="row between"><div class="sec-title" style="margin:0">Vrijeme · ${esc(w.place)}</div><span class="muted small">${wxUpdated()}</span></div>
     <div class="wx" style="margin-top:10px"><div class="ic">${ic}</div><div class="grow"><div class="tmp">${r0(w.hi)}° <small>/ ${r0(w.lo)}°</small></div><div class="muted">${txt} · oborine ${w.p ?? 0} % · vjetar ${r0(w.w)} km/h</div></div></div>
     ${tips.length ? `<div class="wxtips">${tips.map(t => `<span>${esc(t)}</span>`).join("")}</div>` : ""}</div>`;
+}
+function wxNowCard(){
+  const c = WX.data && WX.data.ny && WX.data.ny.cur;
+  if (!c) return `<div class="card"><div class="sec-title" style="margin:0">Trenutno vrijeme · New York</div><p class="muted" style="margin:8px 0 0">${WX.loading ? "Učitavam…" : "Prognoza još nije učitana – potreban je internet."}</p></div>`;
+  const [ic, txt] = WMO(c.c), old = Date.now() - WX.data.at > 3*36e5;
+  return `<div class="card"><div class="row between"><div class="sec-title" style="margin:0">Trenutno vrijeme · New York</div><span class="muted small" style="white-space:nowrap">${old ? "⚠ " : ""}↻ ${new Date(WX.data.at).toLocaleTimeString("hr-HR",{hour:"2-digit",minute:"2-digit"})}</span></div>
+    <div class="wx" style="margin-top:10px"><div class="ic">${ic}</div><div class="grow"><div class="tmp">${r0(c.t)}°</div><div class="muted">${txt}${c.f != null ? ` · osjećaj ${r0(c.f)}°` : ""}</div></div>
+    <div class="muted small" style="text-align:right;line-height:1.6">${c.w != null ? `💨 ${r0(c.w)} km/h<br>` : ""}${c.h != null ? `💧 ${r0(c.h)} %<br>` : ""}🕒 ${tzParts("America/New_York").hm}</div></div></div>`;
 }
 function wxUpdated(){ if (!WX.data) return ""; const d = new Date(WX.data.at); return "ažurirano " + d.toLocaleTimeString("hr-HR",{hour:"2-digit",minute:"2-digit"}); }
 function wxStrip(){
@@ -646,7 +654,7 @@ function blocks(day){
 
 function vDanas(){
   const T = tripKey();
-  let html = "";
+  let html = wxNowCard();
   if (T.k === "pre"){
     const start = Date.UTC(2026,11,5,13,55); // 14:55 Zagreb
     const diff = Math.max(0, start - Date.now());
