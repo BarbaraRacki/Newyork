@@ -654,7 +654,11 @@ function blocks(day){
 
 function vDanas(){
   const T = tripKey();
-  let html = wxNowCard();
+  let html = "";
+  { const ii = insetsInfo(), m = LS.get("insets","auto");
+    if ((ii.appMode || ii.gap < 40) && m === "auto")
+      html += `<div class="banner row between" style="gap:8px"><span>Ne vidiš izbornik dolje ili ime gore?</span><span class="row" style="gap:6px;flex:none"><button class="btn sm" data-insets="on">Popravi</button><button class="btn sm" style="border-color:var(--line2);color:var(--slate)" data-insets="off">Sve je OK</button></span></div>`; }
+  html += wxNowCard();
   if (T.k === "pre"){
     const start = Date.UTC(2026,11,5,13,55); // 14:55 Zagreb
     const diff = Math.max(0, start - Date.now());
