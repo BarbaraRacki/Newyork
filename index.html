@@ -159,7 +159,7 @@ label.f{display:block;font-size:12px;letter-spacing:.12em;text-transform:upperca
 .li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
 .li:first-child{border-top:0}
 .li .grow small{display:block;color:var(--slate);font-size:12px}
-.li .x{background:none;border:0;color:var(--line2);font-size:20px;padding:0 4px}
+.li .x{background:none;border:0;color:#9CA3AF;font-size:24px;line-height:1;padding:4px 6px}
 .addrow{display:flex;gap:8px;margin-top:10px}
 .addrow .inp{padding:9px 11px;font-size:15px}
 .progress{font-size:13px;color:var(--slate)}
@@ -218,7 +218,7 @@ const R = {
   d4a:"https://www.google.com/maps/dir/Hotel+309,+309+W+14th+St,+New+York,+NY+10014/66+Perry+St,+New+York,+NY+10014/90+Bedford+St,+New+York,+NY+10014/Dominique+Ansel+Bakery,+189+Spring+St,+New+York,+NY+10012/data=!4m2!4m1!3e2",
   d4b:"https://www.google.com/maps/dir/Dominique+Ansel+Bakery,+189+Spring+St,+New+York,+NY+10012/Greene+St,+New+York,+NY/The+Silk+Exchange+Building,+487+Broadway,+New+York,+NY+10013/E.V.+Haughwout+Building,+488+Broadway,+New+York,+NY+10012/Old+Police+Headquarters,+240+Centre+St,+New+York,+NY/Ferrara+Bakery+and+Cafe,+195+Grand+St,+New+York,+NY/Mulberry+St,+New+York,+NY/Wo+Hop,+17+Mott+St,+New+York,+NY/Columbus+Park,+New+York,+NY/data=!4m2!4m1!3e2",
   d4c:"https://www.google.com/maps/dir/Marshalls,+620+6th+Ave,+New+York,+NY+10011/2nd+STREET+Chelsea,+142+W+26th+St,+New+York,+NY+10001/Goodwill+NYNJ,+103+W+25th+St,+New+York,+NY+10001/TTH+Vintage+Boutique,+40+W+25th+St,+New+York,+NY+10010/230+Fifth+Rooftop,+1150+Broadway,+New+York,+NY/data=!4m2!4m1!3e2",
-  d5:"https://www.google.com/maps/dir/Hotel+309,+309+W+14th+St,+New+York,+NY+10014/Chelsea+Market,+75+9th+Ave,+New+York,+NY+10011/High+Line,+New+York,+NY+10011/Vessel,+20+Hudson+Yards,+New+York,+NY+10001/data=!4m2!4m1!3e2",
+  d5:"https://www.google.com/maps/dir/Hotel+309,+309+W+14th+St,+New+York,+NY+10014/Chelsea+Market,+75+9th+Ave,+New+York,+NY+10011/High+Line,+New+York,+NY+10011/The+Shops+at+Hudson+Yards,+20+Hudson+Yards,+New+York,+NY+10001/data=!4m2!4m1!3e2",
   d6:"https://www.google.com/maps/dir/New+York+City+Hall,+New+York,+NY+10007/New+York+County+Supreme+Court,+60+Centre+St,+New+York,+NY+10007/Brooklyn+Bridge,+New+York,+NY/Brooklyn+Bridge+Park,+Brooklyn,+NY+11201/Squibb+Park+Bridge,+Brooklyn,+NY+11201/Harriet's+Rooftop,+60+Furman+St,+Brooklyn,+NY+11201/Washington+St+%26+Water+St,+Brooklyn,+NY/Plymouth+St,+Brooklyn,+NY/Empire+Stores,+53+Water+St,+Brooklyn,+NY/data=!4m2!4m1!3e2"
 };
 const gm = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q + ", New York");
@@ -311,7 +311,7 @@ const DAYS = [
   items:[
    {h:8.5,t:"Jutro",x:"Chelsea Market, dva bloka od hotela",s:"Za doručak Friedman's ili neka od pekarnica"},
    {h:10,t:"Prijepodne",x:"Šetnja High Lineom do Hudson Yardsa",s:"≈ 2 km, 27 min"},
-   {h:12,t:"Podne",x:"Vessel i ručak",s:"Izvana besplatno · penjanje ≈ $12, rezervacija online"},
+   {h:12,t:"Podne",x:"Ručak u Hudson Yardsu"},
    {h:13.5,t:"Popodne",x:"Slobodno vrijeme",s:"Mercado Little Spain, Shops at Hudson Yards ili odmor"},
    {h:18,t:"Večer",x:"Slobodna večer",s:"Npr. večera u Chelsea Marketu ili Mercado Little Spain"}],
   blocks:[
@@ -320,7 +320,7 @@ const DAYS = [
      ["Chelsea Market","Los Tacos No. 1, Lobster Place, Very Fresh Noodles."],
      ["The Shops at Hudson Yards","Sedam katova, od Zare i Uniqla do luksuza."],
      ["Grand Slam","Suvenirnica uz kazalište, radi do kasno."]]},
-   {k:"links",l:[["Ruta: hotel → Vessel",R.d5]]}]},
+   {k:"links",l:[["Ruta: hotel → Hudson Yards",R.d5]]}]},
  {id:"2026-12-11", n:6, dow:"Petak", d:"11. 12.", title:"Brooklynski most i blagdanska svjetla", sub:"Izlazak sunca na mostu, navečer Peta avenija", tz:"ny",
   items:[
    {h:6.5,t:"6:30",x:"Polazak iz hotela",s:"A ili C do Fulton St, ≈ 17 min"},
@@ -339,18 +339,17 @@ const DAYS = [
      ["Katedrala sv. Patrika","Neogotička katedrala nasuprot Rockefeller Centera."],
      ["Saks, Cartier, Tiffany, Bergdorf Goodman","Svjetlosna predstava na pročelju Saksa i najraskošniji izlozi."]]},
    {k:"links",l:[["Cijela jutarnja ruta",R.d6]]}]},
- {id:"2026-12-12", n:7, dow:"Subota", d:"12. 12.", title:"Umjetnost, sajmovi i Rockettes", sub:"Posljednji puni dan – opušten tempo", tz:"ny",
+ {id:"2026-12-12", n:7, dow:"Subota", d:"12. 12.", title:"Umjetnost i blagdanski sajmovi", sub:"Posljednji puni dan – opušten tempo", tz:"ny",
   items:[
    {h:10,t:"10:00",x:"Metropolitan ili trajekt do Kipa slobode",s:"Po izboru"},
    {h:14,t:"≈ 14:00",x:"Blagdanski sajmovi i zadnja kupovina",s:"Union Square, Columbus Circle"},
    {h:17,t:"Popodne",x:"Pakiranje u hotelu"},
-   {h:19,t:"Večer",x:"Oproštajna večer",s:"Rockettes, Dyker Heights ili mirna večer"}],
+   {h:19,t:"Večer",x:"Oproštajna večer",s:"Dyker Heights ili mirna večer"}],
   blocks:[
    {k:"opts",title:"Prijepodne – po izboru",l:[
      ["Metropolitan","Hram Dendur, Van Gogh, Rembrandt, oklopi; barokno božićno drvce. Oko $30 · 2–3 h · linije 4/5/6 do 86 St."],
      ["Kip slobode","Besplatni Staten Island Ferry, ≈ 1 h. Linija 1 do South Ferry; za kip stanite desno u odlasku."]]},
    {k:"opts",title:"Večer – po izboru",l:[
-     ["Rockettes","Christmas Spectacular u Radio City Music Hallu, ≈ 90 min. Karte unaprijed."],
      ["Dyker Heights","Božićno ukrašene kuće (11.–13. av., 83.–86. ul.). Linija R do 86 St. Besplatno, oko 16:30–21 h."],
      ["Mirna večer","Večera u West Villageu ili Chelseaju i posljednja šetnja do bora u Rockefeller Centeru."]]},
    {k:"tip",x:"Provjerite u United aplikaciji može li se prtljaga predati ranije – sutra idemo u outlet."}]},
@@ -404,8 +403,6 @@ const LISTS = {
     ["amnh","Ulaznice: Prirodoslovni muzej (8. 12. u 10:00)"],
     ["summit","Ulaznice: SUMMIT One Vanderbilt (8. 12. u 16:30)"],
     ["chicago","Ulaznice: mjuzikl CHICAGO (7. 12. u 19:00)"],
-    ["rockettes","Rockettes – odlučiti i kupiti karte (12. 12.)"],
-    ["vessel","Vessel – rezervirati penjanje (po želji)"],
     ["omny","Beskontaktna kartica / mobitel spreman za OMNY"],
     ["cash","Gotovina u dolarima (Wo Hop, napojnice)"],
     ["ckr","Online check-in Ryanair"],
@@ -453,7 +450,7 @@ const LS = {
 function mergeSettings(x){ x = x || {}; return Object.assign({}, DEFAULT_SETTINGS, x, {budgets:Object.assign({}, DEFAULT_SETTINGS.budgets, x.budgets||{})}); }
 const S = {
   expenses: LS.get("expenses", {}), shopping: LS.get("shopping", {}), checks: LS.get("checks", {}),
-  items: LS.get("items", {}), settings: mergeSettings(LS.get("settings", {})),
+  items: LS.get("items", {}), hidden: LS.get("hidden", {}), settings: mergeSettings(LS.get("settings", {})),
   name: LS.get("name", ""), note:""
 };
 if (!("localStorage" in window) || !LS.set("probe", 1)) S.note = "Preglednik ne dopušta spremanje – podaci se neće sačuvati. Isključite privatni način rada.";
@@ -501,7 +498,7 @@ const dataToBlob = d => fetch(d).then(r => r.blob());
 async function exportBackup(){
   const receipts = {};
   try { const all = await IDB.all(); for (const [k,b] of Object.entries(all)) receipts[k] = await blobToData(b); } catch(e){ console.warn(e); }
-  const data = {app:"nyc26", v:1, exported:new Date().toISOString(), name:S.name, expenses:S.expenses, shopping:S.shopping, checks:S.checks, items:S.items, settings:S.settings, receipts};
+  const data = {app:"nyc26", v:1, exported:new Date().toISOString(), name:S.name, expenses:S.expenses, shopping:S.shopping, checks:S.checks, items:S.items, hidden:S.hidden, settings:S.settings, receipts};
   const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
   const fname = `newyork-kopija-${new Date().toISOString().slice(0,10)}.json`;
   const file = new File([blob], fname, {type:"application/json"});
@@ -517,7 +514,7 @@ async function importBackup(file){
     const d = JSON.parse(await file.text());
     if (d.app !== "nyc26") throw new Error("format");
     for (const [k,v] of Object.entries(d.receipts || {})) await IDB.put(k, await dataToBlob(v));
-    ["expenses","shopping","checks","items"].forEach(c => { S[c] = Object.assign({}, S[c], d[c] || {}); persist(c); });
+    ["expenses","shopping","checks","items","hidden"].forEach(c => { S[c] = Object.assign({}, S[c], d[c] || {}); persist(c); });
     if (d.settings) saveSettings(d.settings);
     if (!S.name && d.name){ S.name = d.name; LS.set("name", S.name); }
     await loadReceipts(); render(); toast("Kopija je vraćena");
@@ -675,13 +672,13 @@ function vTroskovi(){
 }
 
 function allListItems(list){
-  const base = LISTS[list].items.map(([id,x]) => ({id, x, base:true}));
+  const base = LISTS[list].items.filter(([id]) => !S.hidden[list+":"+id]).map(([id,x]) => ({id, x, base:true}));
   const custom = Object.entries(S.items).filter(([,v]) => v.list === list).sort((a,b)=>(a[1].created||0)-(b[1].created||0)).map(([id,v]) => ({id, x:v.text}));
   return base.concat(custom);
 }
 function listRow(list, i){
   const k = list + ":" + i.id, on = !!S.checks[k];
-  return `<div class="li ${on?"done":""}"><button class="chk ${on?"on":""}" data-check="${esc(k)}" aria-label="Označi"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><div class="grow txt"><span class="t">${esc(i.x)}</span></div>${i.base?"":`<button class="x" data-delitem="${esc(i.id)}" aria-label="Obriši">×</button>`}</div>`;
+  return `<div class="li ${on?"done":""}"><button class="chk ${on?"on":""}" data-check="${esc(k)}" aria-label="Označi"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><div class="grow txt"><span class="t">${esc(i.x)}</span></div><button class="x" data-delitem="${esc(i.id)}" data-list="${list}" data-base="${i.base?1:""}" aria-label="Obriši">×</button></div>`;
 }
 function vPopisi(){
   const seg = `<div class="seg" style="margin-bottom:14px">${[["pre","Prije puta"],["pack","Pakiranje"],["shop","Shopping"]].map(([k,n]) => `<button class="${listTab===k?"on":""}" data-ltab="${k}">${n}</button>`).join("")}</div>`;
@@ -705,7 +702,8 @@ function vPopisi(){
   return seg + `<div class="card"><div class="row between"><h3>${LISTS[listTab].n}</h3><span class="progress">${done} / ${items.length}</span></div>
     <div class="bar" style="margin:8px 0 6px"><i style="width:${items.length?done/items.length*100:0}%"></i></div>
     ${items.map(i => listRow(listTab, i)).join("")}
-    <form id="itemForm"><div class="addrow"><input class="inp" id="itemText" placeholder="Dodaj stavku…" autocomplete="off"><button class="btn solid" type="submit">Dodaj</button></div></form></div>`;
+    <form id="itemForm"><div class="addrow"><input class="inp" id="itemText" placeholder="Dodaj stavku…" autocomplete="off"><button class="btn solid" type="submit">Dodaj</button></div></form>
+    ${Object.keys(S.hidden).some(k => k.startsWith(listTab + ":")) ? `<button class="btn sm block" style="margin-top:10px;border-color:var(--line2);color:var(--slate)" data-restore="${listTab}">Vrati obrisane početne stavke</button>` : ""}</div>`;
 }
 
 function vInfo(){
@@ -826,7 +824,13 @@ document.addEventListener("click", ev => {
   if (ds.ltab){ listTab = ds.ltab; return render(); }
   if (ds.add != null) return openExpense(null, ds.add);
   if (ds.edit) return openExpense(ds.edit);
-  if (ds.delitem){ const id = ds.delitem; delDoc("items", id); delDoc("checks", listTab+":"+id); return; }
+  if (ds.delitem){
+    const id = ds.delitem, list = ds.list || listTab, key = list + ":" + id;
+    if (ds.base) putDoc("hidden", key, true).catch(()=>{}); else delDoc("items", id);
+    if (S.checks[key]) delDoc("checks", key);
+    toast("Stavka je obrisana"); return;
+  }
+  if (ds.restore){ Object.keys(S.hidden).filter(k => k.startsWith(ds.restore + ":")).forEach(k => delete S.hidden[k]); persist("hidden"); render(); toast("Stavke su vraćene"); return; }
   if (ds.shop){ const it = S.shopping[ds.shop]; return putDoc("shopping", ds.shop, {...it, done:!it.done}).catch(()=>{}); }
   if (ds.delshop) return delDoc("shopping", ds.delshop);
   // obrazac
