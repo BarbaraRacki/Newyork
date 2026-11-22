@@ -235,7 +235,7 @@ const DAYS = [
  {id:"2026-12-06", n:1, dow:"Nedjelja", d:"6. 12.", title:"Dobrodošli u New York", sub:"Prvi susret s gradom koji nikad ne spava", tz:"ny",
   items:[
    {h:3.7,t:"09:45",x:"United Malpensa → Newark",s:"Vrijeme polaska po talijanskom vremenu"},
-   {h:12.08,t:"12:05",x:"Slijetanje u Newark (EWR)"},
+   {h:12.08,t:"12:05",x:"Slijetanje u Newark (EWR)",go:["transferi","Kako do hotela"]},
    {h:12.6,t:"Zatim",x:"Putovnice, carina i transfer do Manhattana",s:"AirTrain + NJ Transit (≈ $20) ili autobus 62 + PATH (≈ $5) – vidi Transferi"},
    {h:14.5,t:"Popodne",x:"Prijava u Hotel 309 i odmor",s:"309 West 14th Street, Chelsea"},
    {h:18,t:"Večer",x:"Šetnja do Times Squarea i Rockefeller Centera",s:"≈ 4,5 km · oko 1 h hoda"}],
@@ -568,7 +568,7 @@ function timeline(day, nowH, interactive=true){
   return `<ul class="tl">${day.items.map((it,i) => {
     const key = `${day.id}#${i}`, done = !!S.checks[key];
     const cls = [done?"done":"", nowH!=null && i===cur ? "now" : "", nowH!=null && i<cur && !done ? "past":""].join(" ");
-    return `<li class="${cls}"><div class="time">${esc(it.t)}</div><div class="txt"><span class="t">${esc(it.x)}</span>${it.s?`<small>${esc(it.s)}</small>`:""}</div>${interactive?`<button class="chk ${done?"on":""}" data-check="${esc(key)}" aria-label="Označi"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button>`:""}</li>`;
+    return `<li class="${cls}"><div class="time">${esc(it.t)}</div><div class="txt"><span class="t">${esc(it.x)}</span>${it.s?`<small>${esc(it.s)}</small>`:""}${it.go?`<button class="btn sm" style="margin-top:6px" data-go="${esc(it.go[0])}">${esc(it.go[1])} →</button>`:""}</div>${interactive?`<button class="chk ${done?"on":""}" data-check="${esc(key)}" aria-label="Označi"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button>`:""}</li>`;
   }).join("")}</ul>`;
 }
 function blocks(day){
