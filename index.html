@@ -385,7 +385,16 @@ const CATS = [
   {id:"smjestaj", n:"Smještaj", e:"🏨"},
   {id:"ostalo", n:"Ostalo", e:"✦"}
 ];
-const DEFAULT_SETTINGS = {rate:0.87, budgets:{hrana:482, prijevoz:131, ulaznice:219, shopping:0, smjestaj:0, ostalo:35}};
+const DEFAULT_SETTINGS = {rate:0.909, budgets:{hrana:482, prijevoz:131, ulaznice:0, shopping:0, smjestaj:0, ostalo:35}};
+// Plaćeno prije puta, po osobi (€)
+const PREPAID = [
+  {e:"✈", n:"Ryanair Zagreb ⇄ Bergamo", s:"povratna karta", a:83.93},
+  {e:"✈", n:"United Malpensa ⇄ Newark", s:"povratna karta s putnim osiguranjem", a:527},
+  {e:"🏨", n:"Hotel Villa Malpensa", s:"1 noć, 5. – 6. 12.", a:65},
+  {e:"🏨", n:"Hotel 309, New York", s:"7 noći · 1.418 € za dvoje (tečaj 1 € = 1,10 $)", a:709},
+  {e:"🎟", n:"Karte i ulaznice", s:"FRIENDS, muzej, SUMMIT, CHICAGO…", a:215}
+];
+const PREPAID_SUM = PREPAID.reduce((t,x) => t + x.a, 0);
 
 const LISTS = {
   pre:{n:"Prije puta", items:[
@@ -541,7 +550,7 @@ let tab = "danas", planDay = null, costDay = "all", listTab = "pre";
 function setTab(t){ tab = t; if (location.hash !== "#"+t) history.replaceState(null, "", "#"+t); window.scrollTo(0,0); render(); }
 window.addEventListener("hashchange", () => { const t = location.hash.slice(1); if (["danas","plan","troskovi","popisi","info"].includes(t) && t !== tab){ tab = t; render(); } });
 
-function expEur(e){ return e.cur === "EUR" ? e.amt : e.amt * (S.settings.rate || 0.87); }
+function expEur(e){ return e.cur === "EUR" ? e.amt : e.amt * (S.settings.rate || 0.909); }
 function expList(){ return Object.entries(S.expenses).map(([id,e]) => ({id, ...e})).sort((a,b) => (b.created||0) - (a.created||0)); }
 function sumEur(list){ return list.reduce((s,e) => s + expEur(e), 0); }
 
@@ -590,7 +599,7 @@ function vDanas(){
     const next = preItems.filter(i => !S.checks["pre:"+i.id]).slice(0,4);
     if (next.length) html += `<div class="card"><div class="sec-title" style="margin-top:0">Još treba obaviti</div>${next.map(i => listRow("pre", i)).join("")}</div>`;
     const pre = expList().filter(e => e.day === "pre");
-    html += `<div class="card"><div class="row between"><div><div class="muted">Plaćeno prije puta</div><div class="big" style="font-size:28px;margin-top:4px">${eur(sumEur(pre))}</div></div><button class="btn solid sm" data-add="pre">+ Dodaj</button></div></div>`;
+    html += `<div class="card"><div class="row between"><div><div class="muted">Plaćeno prije puta, po osobi</div><div class="big" style="font-size:28px;margin-top:4px">${eur(PREPAID_SUM + sumEur(pre))}</div><div class="muted small">letovi, smještaj i ulaznice</div></div><button class="btn sm" data-go="troskovi">Detalji</button></div></div>`;
     html += `<div class="sec-title">Prvi dan</div>` + dayCard(DAYS[0], null, true);
     return html;
   }
@@ -630,14 +639,18 @@ function expRow(e){
   return `<button class="exp" data-edit="${esc(e.id)}">${icon}<div class="grow"><div>${esc(e.desc || c.n)}</div><div class="muted small">${esc(c.n)}${e.pay==="cash"?" · gotovina":""}${e.receipt?" · 📎 račun":""}</div></div><div class="amt"><b>${main}</b><small>${sub}</small></div></button>`;
 }
 function vTroskovi(){
-  const all = expList(), st = S.settings, rate = st.rate || 0.87;
+  const all = expList(), st = S.settings, rate = st.rate || 0.909;
   const total = sumEur(all);
   const budgetTotal = Object.values(st.budgets).reduce((a,b) => a + (+b||0), 0);
   const byCat = CATS.map(c => ({...c, s: sumEur(all.filter(e => e.cat === c.id)), b: +st.budgets[c.id] || 0}));
   let html = `<div class="card dark"><div class="eyebrow">Ukupno potrošeno</div><div class="big" style="margin:6px 0 2px">${eur(total)}</div>
     <div class="muted">${budgetTotal ? `od planiranih ${eur(budgetTotal)} · ostaje <b style="color:${total>budgetTotal?"#E59A8C":"#fff"}">${eur(budgetTotal-total)}</b>` : "Postavite budžet u Info → Postavke"}</div>
     ${budgetTotal ? `<div class="bar" style="margin-top:10px"><i class="${total>budgetTotal?"over":""}" style="width:${Math.min(100,total/budgetTotal*100)}%"></i></div>` : ""}
-    <p class="muted small" style="margin:10px 0 0">Tečaj 1 $ = ${fmt(rate,3)} € · letovi i hoteli (1.363,43 € po osobi) već su plaćeni i nisu ovdje</p></div>`;
+    <p class="muted small" style="margin:10px 0 0">Tečaj 1 € = ${fmt(1/rate)} $ · iznosi su po osobi</p>
+    <div class="row between" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)"><span class="muted">Cijelo putovanje s plaćenim unaprijed</span><b style="color:#fff;white-space:nowrap">${eur(total + PREPAID_SUM)}</b></div></div>
+  <div class="card"><div class="row between"><div class="sec-title" style="margin:0">Plaćeno prije puta</div><b>${eur(PREPAID_SUM)}</b></div>
+    ${PREPAID.map(x => `<div class="exp" style="cursor:default"><div class="ico">${x.e}</div><div class="grow"><div>${esc(x.n)}</div><div class="muted small">${esc(x.s)}</div></div><div class="amt"><b>${eur(x.a)}</b></div></div>`).join("")}
+    <p class="muted small" style="margin:8px 0 0">Ovo je već plaćeno i ne ulazi u budžet za putovanje. Ostale troškove prije puta možeš dodati pod „Prije“.</p></div>`;
   html += `<div class="card"><div class="sec-title" style="margin-top:0">Po kategorijama</div>${byCat.filter(c => c.s>0 || c.b>0).map(c => `
     <div class="cat-row"><div class="row between"><span>${c.e} ${esc(c.n)}</span><span class="muted">${eur(c.s)}${c.b?` / ${fmt(c.b,0)} €`:""}</span></div>${c.b?`<div class="bar"><i class="${c.s>c.b?"over":""}" style="width:${Math.min(100,c.s/c.b*100)}%"></i></div>`:""}</div>`).join("") || `<div class="empty">Još nema troškova.</div>`}</div>`;
   const ids = ["all","pre",...DAYS.map(d => d.id)];
@@ -706,8 +719,8 @@ function vInfo(){
     ${flight("Pon 14. 12. · Ryanair","20:20","BGY","21:35","ZAG")}
     <p class="muted small">Orioshuttle Bergamo ⇄ Malpensa, ≈ 1,5 h, 25 € po osobi u jednom smjeru.</p></div>
   <div class="card"><h3>Smještaj</h3>
-    <div class="place" style="margin-top:8px"><b>Hotel Villa Malpensa</b> <span class="pill">5. – 6. 12.</span><p>Uz aerodrom. Doručak od 6:00, prijevoz do aerodroma uključen.</p></div>
-    <div class="place"><b>Hotel 309</b> <span class="pill">6. – 13. 12.</span><p>309 West 14th Street, Chelsea · bez doručka · podzemna 14 St – 8 Av (A/C/E) ispred vrata</p>
+    <div class="place" style="margin-top:8px"><b>Hotel Villa Malpensa</b> <span class="pill">5. – 6. 12.</span> <span class="pill">65 € po osobi</span><p>Uz aerodrom. Doručak od 6:00, prijevoz do aerodroma uključen.</p></div>
+    <div class="place"><b>Hotel 309</b> <span class="pill">6. – 13. 12.</span> <span class="pill">709 € po osobi</span><p>309 West 14th Street, Chelsea · bez doručka · podzemna 14 St – 8 Av (A/C/E) ispred vrata</p>
     <a class="btn sm" style="margin-top:8px" href="${gm("Hotel 309, 309 W 14th St")}" target="_blank" rel="noopener">↗ Hotel na karti</a></div></div>
   <div class="card"><h3>Kalkulator</h3>
     <label class="f">Iznos u dolarima</label><input class="inp" id="calcIn" inputmode="decimal" placeholder="npr. 48,50">
@@ -722,7 +735,7 @@ function vInfo(){
     <dt>ESTA</dt><dd>Online prijava unaprijed</dd></dl></div>
   <div class="card"><h3>Sve rute</h3>${DAYS.flatMap(d => d.blocks.filter(b => b.k==="links").flatMap(b => b.l.filter(([,u]) => u.includes("/dir/")).map(([n,u]) => `<div class="li"><div class="grow">${esc(n)}<small>${esc(d.dow)}, ${esc(d.d)}</small></div><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">↗</a></div>`))).join("")}</div>
   <div class="card"><h3>Postavke troškova</h3>
-    <form id="setForm"><label class="f">Tečaj: 1 $ = ? €</label><input class="inp" id="setRate" inputmode="decimal" value="${esc(String(st.rate).replace(".",","))}">
+    <form id="setForm"><label class="f">Tečaj: 1 € = ? $</label><input class="inp" id="setRate" inputmode="decimal" value="${esc(fmt(1/(st.rate||0.909)))}">
     <label class="f">Budžet po kategorijama (€, po osobi)</label>
     ${CATS.map(c => `<div class="row" style="margin-bottom:8px"><span class="grow">${c.e} ${esc(c.n)}</span><input class="inp" style="width:110px;text-align:right" inputmode="decimal" data-bud="${c.id}" value="${esc(String(st.budgets[c.id]||0))}"></div>`).join("")}
     <button class="btn solid block" type="submit" style="margin-top:6px">Spremi postavke</button></form>
@@ -756,7 +769,7 @@ function drawSheet(){
   $("#sheet").classList.remove("install");
   const dayOpts = [["pre","Prije puta"], ...DAYS.map(d => [d.id, `${d.dow}, ${d.d}`])];
   const n = parseNum(F.amtStr);
-  const conv = isFinite(n) && F.cur === "USD" ? `≈ ${eur(n * (S.settings.rate||0.87))}` : "";
+  const conv = isFinite(n) && F.cur === "USD" ? `≈ ${eur(n * (S.settings.rate||0.909))}` : "";
   $("#sheet").innerHTML = `<div class="handle"></div>
     <div class="row between"><h2>${F.id?"Uredi trošak":"Novi trošak"}</h2><button class="btn sm" data-close>Zatvori</button></div>
     <label class="f">Iznos</label>
@@ -835,9 +848,9 @@ $("#sheetWrap").addEventListener("click", e => { if (e.target.id === "sheetWrap"
   syncForm(); F.newFile = f; F.preview = URL.createObjectURL(f); drawSheet();
 }));
 document.addEventListener("input", e => {
-  if (e.target.id === "fAmt" && F){ F.amtStr = e.target.value; const n = parseNum(F.amtStr); $("#fConv").textContent = isFinite(n) && F.cur==="USD" ? `≈ ${eur(n*(S.settings.rate||0.87))}` : ""; }
+  if (e.target.id === "fAmt" && F){ F.amtStr = e.target.value; const n = parseNum(F.amtStr); $("#fConv").textContent = isFinite(n) && F.cur==="USD" ? `≈ ${eur(n*(S.settings.rate||0.909))}` : ""; }
   if (e.target.id === "calcIn"){
-    const n = parseNum(e.target.value), r = S.settings.rate || 0.87, o = $("#calcOut");
+    const n = parseNum(e.target.value), r = S.settings.rate || 0.909, o = $("#calcOut");
     if (!isFinite(n)){ o.innerHTML = ""; return; }
     o.innerHTML = `<dt>U eurima</dt><dd>${eur(n*r)}</dd><dt>+ porez 8,9 %</dt><dd>${usd(n*1.089)} · ${eur(n*1.089*r)}</dd><dt>Napojnica 18 %</dt><dd>${usd(n*.18)} → ukupno ${usd(n*1.18)}</dd><dt>Napojnica 20 %</dt><dd>${usd(n*.2)} → ukupno ${usd(n*1.2)}</dd>`;
   }
@@ -849,7 +862,7 @@ document.addEventListener("submit", e => {
   if (e.target.id === "nameForm"){ const v = $("#nameInp").value.trim(); if (!v) return; S.name = v; LS.set("name", v); render(); toast("Ime je spremljeno"); return; }
   if (e.target.id === "welcomeForm"){ const v = $("#welcomeName").value.trim(); if (!v){ $("#welcomeName").focus(); return; } S.name = v; LS.set("name", v); $("#sheetWrap").classList.remove("open"); render(); toast(`Bok, ${v}!`); return; }
   if (e.target.id === "setForm"){
-    const r = parseNum($("#setRate").value); if (!isFinite(r) || r <= 0){ toast("Neispravan tečaj."); return; }
+    const ur = parseNum($("#setRate").value); if (!isFinite(ur) || ur <= 0){ toast("Neispravan tečaj."); return; } const r = 1 / ur;
     const b = {}; document.querySelectorAll("[data-bud]").forEach(i => { const n = parseNum(i.value); b[i.dataset.bud] = isFinite(n) ? n : 0; });
     saveSettings({rate:r, budgets:b}); toast("Postavke su spremljene");
   }
