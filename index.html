@@ -565,7 +565,7 @@ function wxNorm(j){
 }
 async function loadWeather(force){
   if (WX.loading) return;
-  if (!force && WX.data && Date.now() - WX.data.at < 3*36e5) return;
+  if (!force && WX.data && Date.now() - WX.data.at < 30*60000) return;
   const q = (lat, lon, tz) => `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&timezone=${encodeURIComponent(tz)}&forecast_days=16`;
   WX.loading = true;
   try{
