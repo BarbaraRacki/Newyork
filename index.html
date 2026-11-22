@@ -183,6 +183,18 @@ label.f{display:block;font-size:12px;letter-spacing:.12em;text-transform:upperca
 .countdown b{display:block;font-family:var(--serif);font-size:28px;font-weight:400;color:var(--gold)}
 .countdown span{font-size:11px;color:#AEB6C2;letter-spacing:.08em}
 .hidden{display:none!important}
+.wx{display:flex;align-items:center;gap:14px}
+.wx .ic{font-size:44px;line-height:1}
+.wx .tmp{font-family:var(--serif);font-size:34px;line-height:1}
+.wx .tmp small{font-size:18px;color:var(--slate)}
+.wxtips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.wxtips span{font-size:13px;background:#FBF7EF;border:1px solid #EADFC8;color:var(--gold-d);padding:3px 10px;border-radius:99px}
+.wxstrip{display:flex;gap:8px;overflow-x:auto;margin:10px -16px 0;padding:0 16px 2px;scrollbar-width:none}
+.wxstrip::-webkit-scrollbar{display:none}
+.wxstrip div{flex:none;min-width:58px;text-align:center;background:var(--cream);border-radius:10px;padding:7px 6px}
+.wxstrip small{display:block;font-size:11px;color:var(--slate)}
+.wxstrip i{display:block;font-style:normal;font-size:20px;margin:2px 0}
+.wxstrip b{font-weight:500;font-size:14px}
 </style>
 </head>
 <body>
@@ -190,7 +202,7 @@ label.f{display:block;font-size:12px;letter-spacing:.12em;text-transform:upperca
   <header class="top">
     <div class="eyebrow" id="hello">Putni pratilac · 5. – 14. 12. 2026</div>
     <h1>New <i>York</i></h1>
-    <div class="clocks"><span>Zagreb<b id="clkZg">--:--</b></span><span>New York<b id="clkNy">--:--</b></span></div>
+    <div class="clocks"><span>Zagreb<b id="clkZg">--:--</b></span><span>New York<b id="clkNy">--:--</b><b id="wxNy" style="margin-left:8px;color:var(--gold)"></b></span></div>
   </header>
   <main id="view"></main>
 </div>
@@ -544,6 +556,56 @@ async function storeReceipt(file){
 }
 const receiptSrc = r => r ? (r.local ? (URLS[r.local] || "") : (r.data || "")) : "";
 
+/* ================= VREMENSKA PROGNOZA (Open-Meteo) ================= */
+const WX = {data: LS.get("wx", null), loading:false};
+const WMO = c => c===0?["☀️","Vedro"]:c<=2?["⛅","Djelomično oblačno"]:c===3?["☁️","Oblačno"]:c<=48?["🌫️","Magla"]:c<=57?["🌦️","Rosulja"]:c<=67?["🌧️","Kiša"]:c<=77?["🌨️","Snijeg"]:c<=82?["🌦️","Pljuskovi"]:c<=86?["🌨️","Snježni pljuskovi"]:["⛈️","Grmljavina"];
+function wxNorm(j){
+  const d = {}; j.daily.time.forEach((t,i) => d[t] = {c:j.daily.weather_code[i], hi:j.daily.temperature_2m_max[i], lo:j.daily.temperature_2m_min[i], p:j.daily.precipitation_probability_max[i], w:j.daily.wind_speed_10m_max[i]});
+  return {days:d, cur: j.current ? {t:j.current.temperature_2m, c:j.current.weather_code} : null};
+}
+async function loadWeather(force){
+  if (WX.loading) return;
+  if (!force && WX.data && Date.now() - WX.data.at < 3*36e5) return;
+  const q = (lat, lon, tz) => `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&current=temperature_2m,weather_code&timezone=${encodeURIComponent(tz)}&forecast_days=16`;
+  WX.loading = true;
+  try{
+    const [ny, mi] = await Promise.all([fetch(q(40.7403,-74.0030,"America/New_York")), fetch(q(45.63,8.72,"Europe/Rome"))].map(p => p.then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })));
+    WX.data = {at:Date.now(), ny:wxNorm(ny), mi:wxNorm(mi)}; LS.set("wx", WX.data);
+    if (!F) render(); tick();
+  }catch(e){ console.warn("prognoza", e); }
+  WX.loading = false;
+}
+function wxFor(dayId){
+  const day = dayById(dayId); if (!day || !WX.data) return null;
+  const src = day.tz === "zg" ? "mi" : "ny", w = WX.data[src] && WX.data[src].days[dayId];
+  return w && w.hi != null ? {...w, place: src === "mi" ? "Milano" : "New York"} : null;
+}
+function wxTips(w){
+  const t = [];
+  if (w.c >= 71 && w.c <= 77 || w.c === 85 || w.c === 86) t.push("❄ moguć snijeg – nepromočive cipele");
+  else if (w.p >= 50) t.push("☂ ponesi kišobran");
+  else if (w.p >= 30) t.push("☂ kišobran za svaki slučaj");
+  if (w.lo <= -3) t.push("🧤 jako hladno – kapa i rukavice");
+  else if (w.hi <= 3) t.push("🧣 hladno – slojevi");
+  if (w.w >= 35) t.push("💨 vjetrovito");
+  return t;
+}
+const r0 = n => Math.round(n);
+function wxAvailFrom(dayId){ const d = new Date(dayId + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() - 15); return `${d.getUTCDate()}. ${d.getUTCMonth()+1}.`; }
+function wxCard(dayId){
+  const w = wxFor(dayId);
+  if (!w) return `<div class="card"><div class="sec-title" style="margin-top:0">Vrijeme</div><p class="muted" style="margin:0">Prognoza za ovaj dan pojavit će se oko ${wxAvailFrom(dayId)}</p></div>`;
+  const [ic, txt] = WMO(w.c), tips = wxTips(w);
+  return `<div class="card"><div class="row between"><div class="sec-title" style="margin:0">Vrijeme · ${esc(w.place)}</div><span class="muted small">${wxUpdated()}</span></div>
+    <div class="wx" style="margin-top:10px"><div class="ic">${ic}</div><div class="grow"><div class="tmp">${r0(w.hi)}° <small>/ ${r0(w.lo)}°</small></div><div class="muted">${txt} · oborine ${w.p ?? 0} % · vjetar ${r0(w.w)} km/h</div></div></div>
+    ${tips.length ? `<div class="wxtips">${tips.map(t => `<span>${esc(t)}</span>`).join("")}</div>` : ""}</div>`;
+}
+function wxUpdated(){ if (!WX.data) return ""; const d = new Date(WX.data.at); return "ažurirano " + d.toLocaleTimeString("hr-HR",{hour:"2-digit",minute:"2-digit"}); }
+function wxStrip(){
+  return `<div class="wxstrip">${DAYS.map(d => { const w = wxFor(d.id); return `<div><small>${d.d.replace(". 12.",".")}</small><i>${w ? WMO(w.c)[0] : "·"}</i><b>${w ? r0(w.hi)+"°" : "–"}</b></div>`; }).join("")}</div>`;
+}
+function wxPill(dayId){ const w = wxFor(dayId); if (!w) return ""; return ` · ${WMO(w.c)[0]} ${r0(w.hi)}° / ${r0(w.lo)}°${w.p >= 30 ? ` · ☂ ${w.p} %` : ""}`; }
+
 /* ================= RENDER ================= */
 let tab = "danas", planDay = null, costDay = "all", listTab = "pre";
 function setTab(t){ tab = t; if (location.hash !== "#"+t) history.replaceState(null, "", "#"+t); window.scrollTo(0,0); render(); }
@@ -600,6 +662,8 @@ function vDanas(){
     if (next.length) html += `<div class="card"><div class="sec-title" style="margin-top:0">Još treba obaviti</div>${next.map(i => listRow("pre", i)).join("")}</div>`;
     const pre = expList().filter(e => e.day === "pre");
     html += `<div class="card"><div class="row between"><div><div class="muted">Plaćeno prije puta, po osobi</div><div class="big" style="font-size:28px;margin-top:4px">${eur(PREPAID_SUM + sumEur(pre))}</div><div class="muted small">letovi, smještaj i ulaznice</div></div><button class="btn sm" data-go="troskovi">Detalji</button></div></div>`;
+    html += `<div class="card"><div class="row between"><div class="sec-title" style="margin:0">Prognoza za putovanje</div><span class="muted small">${wxUpdated()}</span></div>${wxStrip()}
+      <p class="muted small" style="margin:8px 0 0">5. i 14. 12. za Milano, ostali dani za New York. Prognoza je dostupna do 16 dana unaprijed.</p></div>`;
     html += `<div class="sec-title">Prvi dan</div>` + dayCard(DAYS[0], null, true);
     return html;
   }
@@ -610,6 +674,7 @@ function vDanas(){
   const day = dayById(T.k);
   const todays = expList().filter(e => e.day === day.id);
   html += `<div class="card dark"><div class="row" style="align-items:flex-end;gap:14px"><div class="daynum">${day.n === 0 || day.n === 9 ? "✈" : day.n}</div><div class="grow"><div class="eyebrow">${esc(day.dow)}, ${esc(day.d)}${day.n>0&&day.n<9?" · dan "+day.n:""}</div><h2 style="margin-top:4px">${esc(day.title)}</h2></div></div><p class="muted" style="margin:10px 0 0">${esc(day.sub)}</p></div>`;
+  html += wxCard(day.id);
   html += `<div class="card">${timeline(day, T.h)}</div>`;
   html += `<div class="card"><div class="row between"><div><div class="muted">Danas potrošeno</div><div class="big" style="font-size:28px;margin-top:4px">${eur(sumEur(todays))}</div><div class="muted small">${todays.length} ${todays.length===1?"stavka":"stavki"}</div></div><button class="btn solid" data-add="${day.id}">+ Trošak</button></div>
     ${todays.slice(0,4).map(expRow).join("")}</div>`;
@@ -627,7 +692,7 @@ function vPlan(){
   const chips = DAYS.map(d => `<button class="chip ${d.id===planDay?"on":""} ${d.id===T.k?"today":""}" data-day="${d.id}"><small>${d.n===0||d.n===9?"let":"dan "+d.n}</small><b>${d.d.replace(". 12.",".")}</b></button>`).join("");
   const done = day.items.filter((_,i) => S.checks[`${day.id}#${i}`]).length;
   return `<div class="chips">${chips}</div>
-    <div class="card dark"><div class="row" style="align-items:flex-end;gap:14px"><div class="daynum">${day.n===0||day.n===9?"✈":day.n}</div><div class="grow"><div class="eyebrow">${esc(day.dow)}, ${esc(day.d)}</div><h2 style="margin-top:4px">${esc(day.title)}</h2></div></div><p class="muted" style="margin:10px 0 0">${esc(day.sub)} · obavljeno ${done}/${day.items.length}</p></div>
+    <div class="card dark"><div class="row" style="align-items:flex-end;gap:14px"><div class="daynum">${day.n===0||day.n===9?"✈":day.n}</div><div class="grow"><div class="eyebrow">${esc(day.dow)}, ${esc(day.d)}</div><h2 style="margin-top:4px">${esc(day.title)}</h2></div></div><p class="muted" style="margin:10px 0 0">${esc(day.sub)} · obavljeno ${done}/${day.items.length}${wxPill(day.id)}</p></div>
     <div class="card">${timeline(day, day.id===T.k ? T.h : null)}</div>${blocks(day)}`;
 }
 
@@ -1000,12 +1065,20 @@ $("#viewerClose").addEventListener("click", () => $("#viewer").classList.remove(
     document.documentElement.style.setProperty("--sab", "48px");
   }
 })();
-function tick(){ $("#clkZg").textContent = tzParts("Europe/Zagreb").hm; $("#clkNy").textContent = tzParts("America/New_York").hm; }
+function tickWx(){
+  const el = $("#wxNy"); if (!el) return;
+  const c = WX.data && WX.data.ny && WX.data.ny.cur;
+  el.textContent = c && Date.now() - WX.data.at < 6*36e5 ? `${WMO(c.c)[0]} ${r0(c.t)}°` : "";
+}
+function tick(){ tickWx(); $("#clkZg").textContent = tzParts("Europe/Zagreb").hm; $("#clkNy").textContent = tzParts("America/New_York").hm; }
 tick(); setInterval(() => { tick(); if (tab === "danas" && !F) render(); }, 60000);
 
 const h0 = location.hash.slice(1); if (["danas","plan","troskovi","transferi","popisi","info"].includes(h0)) tab = h0;
 render();
 loadReceipts();
+loadWeather();
+setInterval(() => loadWeather(), 30*60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadWeather(); });
 if (!isStandalone() && !LS.get("installSkip", false)) showInstall();
 else if (!S.name) askName();
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
