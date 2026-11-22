@@ -859,6 +859,9 @@ function vInfo(){
   <div class="card"><h3>Tvoji podaci</h3>
     <p class="muted" style="margin:6px 0 12px">Sve što uneseš – troškovi, slike računa i popisi – sprema se samo na ovom uređaju. Drugi korisnici imaju svoju verziju na svojim mobitelima.</p>
     <form id="nameForm"><label class="f">Ime</label><div class="addrow" style="margin-top:0"><input class="inp" id="nameInp" value="${esc(S.name)}" autocomplete="given-name"><button class="btn solid" type="submit">Spremi</button></div></form>
+    <label class="f">Razmak za trake mobitela</label>
+    <p class="muted small" style="margin:0 0 8px">Ako je izbornik dolje ili ime gore skriveno ispod traka mobitela, odaberi „Uključen“.</p>
+    <div class="seg" style="margin-bottom:6px">${[["auto","Automatski"],["on","Uključen"],["off","Isključen"]].map(([k,n]) => `<button class="${LS.get("insets","auto")===k?"on":""}" data-insets="${k}">${n}</button>`).join("")}</div>
     <label class="f">Sigurnosna kopija</label>
     <p class="muted small" style="margin:0 0 10px">${(() => { const t = LS.get("lastBackup", 0); return t ? "Zadnja kopija: " + new Date(t).toLocaleString("hr-HR",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"}) : "Još nisi napravila kopiju."; })()} Kopija sadrži sve podatke i slike računa – spremi je npr. na Google Drive ili pošalji sebi.</p>
     <div class="row"><button class="btn grow" id="bkExport">⤓ Izvezi kopiju</button><button class="btn grow" id="bkImport">⤒ Vrati kopiju</button></div>
@@ -936,6 +939,7 @@ document.addEventListener("click", ev => {
   const ds = t.dataset;
   if (ds.tab) return setTab(ds.tab);
   if (ds.go) return setTab(ds.go);
+  if (ds.insets){ LS.set("insets", ds.insets); applyInsets(); render(); toast("Spremljeno"); return; }
   if (ds.check) return toggleCheck(ds.check);
   if (ds.day){ planDay = ds.day; return render(); }
   if (ds.cday){ costDay = ds.cday; return render(); }
@@ -1059,20 +1063,26 @@ function askName(){
 }
 $("#viewerClose").addEventListener("click", () => $("#viewer").classList.remove("open"));
 
-(function fixInsets(){
-  const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
-  if (!standalone) return;
+function insetsInfo(){
   const probe = document.createElement("div");
   probe.style.cssText = "position:fixed;top:0;left:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)";
   document.body.appendChild(probe);
   const cs = getComputedStyle(probe), t = parseFloat(cs.paddingTop) || 0, b = parseFloat(cs.paddingBottom) || 0;
   probe.remove();
-  const fullScreen = window.innerHeight >= screen.height - 4;
-  if (fullScreen && t === 0 && b === 0){
-    document.documentElement.style.setProperty("--sat", "28px");
-    document.documentElement.style.setProperty("--sab", "48px");
-  }
-})();
+  const appMode = ["standalone","fullscreen","minimal-ui"].some(m => window.matchMedia && matchMedia(`(display-mode: ${m})`).matches) || navigator.standalone === true;
+  const gap = Math.max(0, (screen.height || 0) - window.innerHeight);
+  return {t, b, appMode, gap};
+}
+function applyInsets(){
+  const mode = LS.get("insets", "auto"), root = document.documentElement.style;
+  const i = insetsInfo();
+  // Aplikacija na nekim Androidima crta ispod statusne i navigacijske trake, a preglednik ne javlja njihovu visinu.
+  const need = mode === "on" || (mode === "auto" && i.t === 0 && i.b === 0 && (i.appMode || i.gap < 40) && i.gap < 40);
+  if (need){ root.setProperty("--sat", "34px"); root.setProperty("--sab", "56px"); }
+  else { root.removeProperty("--sat"); root.removeProperty("--sab"); }
+}
+applyInsets();
+window.addEventListener("resize", () => applyInsets());
 function tickWx(){
   const el = $("#wxNy"); if (!el) return;
   const c = WX.data && WX.data.ny && WX.data.ny.cur;
